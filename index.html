@@ -1,0 +1,2069 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>uwuPeek · AimMerkezi</title>
+<meta name="description" content="Valorant için profesyonel tarayıcı içi aim antrenörü — 3D flick, gridshot, tracking ve bilimsel sens bulucu.">
+<style>
+/* ============================================================
+   uwuPeek AimMerkezi — dark tactical HUD
+   ============================================================ */
+:root{
+  --bg:#0a0e13;
+  --srf:#121a22;
+  --srf2:#182430;
+  --txt:#e9eef3;
+  --mut:#8595a6;
+  --red:#ff4655;
+  --cyn:#22e0c6;
+  --gld:#ffbd4a;
+  --grn:#39d98a;
+  --line:rgba(233,238,243,.08);
+  --line2:rgba(233,238,243,.14);
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  --rad:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation-duration:.01ms !important;transition-duration:.01ms !important} }
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:var(--sans);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:rgba(255,70,85,.35)}
+a{color:var(--cyn);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--cyn);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+section{padding:52px 0 8px}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:8px;
+}
+.eyebrow::after{content:"";height:1px;flex:0 0 42px;background:linear-gradient(90deg,var(--red),transparent)}
+h2{font-size:26px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
+.sub{color:var(--mut);font-size:14px;max-width:640px;margin-bottom:22px}
+
+/* ---------- top nav ---------- */
+nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(10,14,19,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.navin{max-width:1120px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:18px}
+.logo{font-weight:800;font-size:15px;letter-spacing:.02em;display:flex;align-items:center;gap:9px;color:var(--txt)}
+.logo .dot{width:9px;height:9px;background:var(--red);transform:rotate(45deg);box-shadow:0 0 10px rgba(255,70,85,.8);flex:none}
+.logo em{font-style:normal;color:var(--red)}
+.navlinks{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.navlinks a{
+  color:var(--mut);font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  padding:7px 11px;border-radius:8px;transition:color .15s,background .15s;
+}
+.navlinks a:hover{color:var(--txt);background:var(--srf2)}
+
+/* ---------- hero ---------- */
+header.hero{
+  padding:66px 0 30px;position:relative;overflow:hidden;
+  background:
+    radial-gradient(700px 340px at 82% -60px, rgba(255,70,85,.13), transparent 70%),
+    radial-gradient(560px 300px at 12% 0px, rgba(34,224,198,.07), transparent 70%);
+}
+.hero .tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyn);
+  border:1px solid rgba(34,224,198,.3);border-radius:999px;padding:6px 14px;margin-bottom:18px;
+  background:rgba(34,224,198,.06);
+}
+.hero .tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cyn);box-shadow:0 0 8px var(--cyn)}
+.hero h1{font-size:clamp(38px,6.4vw,64px);font-weight:900;letter-spacing:-.03em;line-height:1.04}
+.hero h1 .u{
+  background:linear-gradient(100deg,#ff4655 10%,#ff8091 52%,#ffbd4a 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lead{color:var(--mut);font-size:16px;max-width:560px;margin:16px 0 26px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.herostats{display:flex;gap:26px;margin-top:34px;flex-wrap:wrap}
+.herostats div{border-left:2px solid var(--line2);padding-left:14px}
+.herostats b{display:block;font-family:var(--mono);font-size:19px;color:var(--txt)}
+.herostats span{font-size:11.5px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono)}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:700;font-size:14px;letter-spacing:.03em;
+  padding:12px 24px;border-radius:10px;border:1px solid transparent;
+  transition:transform .12s,box-shadow .15s,background .15s,border-color .15s;
+  user-select:none;color:var(--txt);background:var(--srf2);border-color:var(--line2);
+}
+.btn:hover{transform:translateY(-1px);border-color:rgba(233,238,243,.28)}
+.btn:active{transform:translateY(0)}
+.btn.primary{
+  background:linear-gradient(135deg,#ff4655,#d63040);color:#fff;border:none;
+  box-shadow:0 6px 22px -6px rgba(255,70,85,.55);
+}
+.btn.primary:hover{box-shadow:0 8px 28px -6px rgba(255,70,85,.7)}
+.btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--mut)}
+.btn.ghost:hover{color:var(--txt)}
+.btn.big{font-size:16px;padding:15px 34px;border-radius:12px}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ---------- cards / panels ---------- */
+.panel{
+  background:linear-gradient(180deg,var(--srf2),var(--srf));
+  border:1px solid var(--line);border-radius:var(--rad);
+  padding:22px;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:820px){.grid4{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+
+/* ---------- setup ---------- */
+.setupgrid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:stretch}
+@media (max-width:820px){.setupgrid{grid-template-columns:1fr}}
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--mut);margin-bottom:8px;
+}
+.field input[type=number]{
+  width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:10px;
+  color:var(--txt);font-family:var(--mono);font-size:17px;padding:11px 14px;
+  font-variant-numeric:tabular-nums;
+}
+.field input[type=number]:focus{outline:2px solid var(--cyn);outline-offset:-1px;border-color:transparent}
+.presets{display:flex;gap:8px;margin-top:10px}
+.preset{
+  flex:1;padding:9px 0;border-radius:9px;border:1px solid var(--line2);background:transparent;
+  color:var(--mut);font-family:var(--mono);font-size:13px;transition:all .15s;
+}
+.preset:hover{color:var(--txt);border-color:rgba(233,238,243,.3)}
+.preset.on{background:rgba(255,70,85,.12);border-color:var(--red);color:var(--red);font-weight:700}
+.livebox{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+.live{
+  background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center;
+}
+.live b{display:block;font-family:var(--mono);font-size:24px;color:var(--cyn);font-variant-numeric:tabular-nums}
+.live span{font-size:10.5px;color:var(--mut);font-family:var(--mono);letter-spacing:.16em;text-transform:uppercase}
+.hint{
+  margin-top:14px;font-size:12.5px;color:var(--mut);border-left:2px solid var(--gld);
+  padding:8px 12px;background:rgba(255,189,74,.05);border-radius:0 8px 8px 0;
+}
+.hint b{color:var(--gld)}
+.togglerow{display:flex;align-items:center;gap:10px;margin-top:16px;color:var(--mut);font-size:13px}
+.togglerow input{width:17px;height:17px;accent-color:var(--red)}
+
+/* ---------- trainer ---------- */
+.modetabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.mtab{
+  padding:10px 18px;border-radius:10px;border:1px solid var(--line2);background:var(--srf);
+  color:var(--mut);font-size:13.5px;font-weight:600;letter-spacing:.02em;transition:all .15s;
+}
+.mtab:hover:not([disabled]){color:var(--txt);border-color:rgba(233,238,243,.3)}
+.mtab.on{background:rgba(255,70,85,.13);border-color:var(--red);color:#ff98a1}
+.mtab[disabled]{opacity:.45;cursor:not-allowed}
+
+#arena{
+  position:relative;width:100%;aspect-ratio:16/9;background:var(--bg);
+  border:1px solid var(--line2);border-radius:var(--rad);overflow:hidden;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.9), inset 0 0 0 1px rgba(34,224,198,.04);
+}
+#arena:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;border:none}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+#vig{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0,0,0,.5) 100%);
+}
+.ov{
+  position:absolute;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;text-align:center;padding:26px;
+  background:rgba(10,14,19,.78);backdrop-filter:blur(7px);
+}
+.ov.show{display:flex}
+.ov h3{font-size:clamp(22px,3.4vw,32px);font-weight:900;letter-spacing:-.01em}
+.ov .desc{color:var(--mut);font-size:14px;max-width:480px}
+.ov .meta{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--mut);
+}
+.ov .meta span{border:1px solid var(--line2);border-radius:999px;padding:5px 13px;background:rgba(24,36,48,.6)}
+.ov .meta b{color:var(--cyn);font-weight:600}
+.keyhint{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.1em;margin-top:6px}
+.keyhint kbd{
+  border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 7px;
+  background:var(--srf2);color:var(--txt);font-family:var(--mono);font-size:10.5px;
+}
+.donegrid{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:6px 0 4px}
+.donegrid .cell{
+  background:rgba(24,36,48,.8);border:1px solid var(--line);border-radius:12px;padding:12px 20px;min-width:118px;
+}
+.donegrid b{display:block;font-family:var(--mono);font-size:23px;font-variant-numeric:tabular-nums}
+.donegrid span{font-size:10px;color:var(--mut);font-family:var(--mono);letter-spacing:.15em;text-transform:uppercase}
+.newbest{color:var(--gld);font-family:var(--mono);font-size:13px;letter-spacing:.12em}
+.progressbar{width:min(420px,80%);height:8px;background:var(--srf2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.progressbar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--gld));border-radius:99px;transition:width .35s ease}
+.betlast{
+  background:rgba(24,36,48,.8);border:1px solid var(--line);border-radius:12px;padding:12px 22px;
+  font-family:var(--mono);font-size:13px;color:var(--mut);
+}
+.betlast b{color:var(--txt)}
+.betnext{font-family:var(--mono);font-size:14px;color:var(--gld);letter-spacing:.04em}
+#toastArena{
+  position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:9;
+  background:rgba(24,36,48,.95);border:1px solid var(--line2);border-radius:10px;color:var(--txt);
+  padding:9px 18px;font-size:13px;font-family:var(--mono);opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+}
+#toastArena.show{opacity:1}
+
+/* ---------- bench results ---------- */
+#benchWrap{display:none;margin-top:20px}
+#benchWrap.show{display:block}
+.reccards{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin:18px 0}
+@media (max-width:820px){.reccards{grid-template-columns:1fr}}
+.reccard{
+  border:1px solid var(--line);border-radius:12px;padding:18px;background:var(--bg);text-align:center;
+}
+.reccard.main{border-color:rgba(255,189,74,.5);background:linear-gradient(180deg,rgba(255,189,74,.08),var(--bg));}
+.reccard span{font-size:10.5px;color:var(--mut);font-family:var(--mono);letter-spacing:.18em;text-transform:uppercase;display:block;margin-bottom:6px}
+.reccard b{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums;color:var(--txt)}
+.reccard.main b{color:var(--gld);font-size:30px}
+.reccard small{display:block;color:var(--mut);font-size:12px;margin-top:4px;font-family:var(--mono)}
+#benchChartBox{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px 10px 6px;margin-bottom:16px}
+#benchChartBox h4, .tbl-title{
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);
+  padding:0 10px 8px;
+}
+#benchChart{display:block;width:100%;height:230px}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+table.res{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;min-width:640px}
+table.res th{
+  text-align:right;padding:11px 14px;color:var(--mut);font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  border-bottom:1px solid var(--line2);white-space:nowrap;
+}
+table.res th:first-child,table.res td:first-child{text-align:left}
+table.res td{text-align:right;padding:10px 14px;border-bottom:1px solid var(--line);color:var(--txt);white-space:nowrap}
+table.res tr:last-child td{border-bottom:none}
+table.res tr.win td{background:rgba(255,189,74,.07);color:var(--gld);font-weight:700}
+#benchNote{color:var(--mut);font-size:12.5px;margin-top:12px;font-family:var(--mono)}
+
+/* ---------- progress ---------- */
+.tile{
+  background:linear-gradient(180deg,var(--srf2),var(--srf));border:1px solid var(--line);border-radius:var(--rad);
+  padding:20px;position:relative;overflow:hidden;
+}
+.tile::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent 60%)}
+.tile b{display:block;font-family:var(--mono);font-size:30px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tile span{font-size:10.5px;color:var(--mut);font-family:var(--mono);letter-spacing:.18em;text-transform:uppercase}
+.tile small{display:block;color:var(--mut);font-size:12px;margin-top:3px;font-family:var(--mono)}
+.tile .up{color:var(--grn)} .tile .down{color:var(--red)}
+#sparkBox{margin-top:16px}
+#spark{display:block;width:100%;height:64px}
+.sparkcap{display:flex;gap:16px;align-items:center;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--mut);flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.chip i{width:9px;height:9px;border-radius:50%;flex:none}
+
+/* ---------- roadmap ---------- */
+.road{counter-reset:step}
+.road .panel{position:relative;padding-top:26px}
+.road .panel::after{
+  counter-increment:step;content:"0" counter(step);
+  position:absolute;top:14px;right:18px;font-family:var(--mono);font-size:26px;font-weight:800;
+  color:rgba(233,238,243,.07);
+}
+.road h4{font-size:15.5px;margin-bottom:6px}
+.road h4 em{font-style:normal;color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.14em;display:block;margin-bottom:5px;text-transform:uppercase}
+.road p{color:var(--mut);font-size:13px}
+
+/* ---------- reaction ---------- */
+#reactBox{
+  height:230px;border-radius:var(--rad);border:1px solid var(--line2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  background:var(--srf);cursor:pointer;user-select:none;transition:background .1s;text-align:center;padding:20px;
+}
+#reactBox.armed{background:linear-gradient(180deg,#3d1219,#2a0d12);border-color:rgba(255,70,85,.5)}
+#reactBox.go{background:linear-gradient(180deg,#0e3d2c,#0a2b20);border-color:rgba(57,217,138,.6)}
+#reactBox h3{font-size:26px;font-weight:900}
+#reactBox .mono{color:var(--mut);font-size:13px}
+#reactBox b.time{font-family:var(--mono);font-size:44px;color:var(--cyn)}
+.reactrow{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap}
+.reactrow .cell{background:var(--srf);border:1px solid var(--line);border-radius:10px;padding:10px 18px;font-family:var(--mono);font-size:13px;color:var(--mut)}
+.reactrow b{color:var(--txt)}
+
+/* ---------- tips ---------- */
+.tips li{margin:0 0 12px 18px;color:var(--mut);font-size:14px}
+.tips li b{color:var(--txt)}
+.xhairbox{
+  display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line2);
+  border-radius:12px;padding:14px 16px;margin-top:16px;flex-wrap:wrap;
+}
+.xhairbox code{
+  font-family:var(--mono);font-size:12.5px;color:var(--cyn);word-break:break-all;flex:1;min-width:220px;
+}
+footer{
+  margin-top:60px;padding:26px 0 34px;border-top:1px solid var(--line);
+  color:var(--mut);font-size:12.5px;font-family:var(--mono);text-align:center;letter-spacing:.06em;
+}
+footer b{color:var(--red)}
+#toastPage{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99;
+  background:var(--srf2);border:1px solid var(--line2);border-radius:10px;color:var(--txt);
+  padding:10px 20px;font-size:13px;font-family:var(--mono);opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+}
+#toastPage.show{opacity:1}
+</style>
+</head>
+<body>
+
+<nav aria-label="Sayfa içi gezinme">
+  <div class="navin">
+    <span class="logo"><span class="dot" aria-hidden="true"></span>uwu<em>Peek</em>&nbsp;· AimMerkezi</span>
+    <div class="navlinks">
+      <a href="#kurulum">Kurulum</a>
+      <a href="#antrenor">Antrenör</a>
+      <a href="#ilerleme">İlerleme</a>
+      <a href="#yolharitasi">Yol Haritası</a>
+      <a href="#reaksiyon">Reaksiyon</a>
+      <a href="#ipuclari">İpuçları</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="tag">Valorant Aim Laboratuvarı</span>
+    <h1>Nişanını inşa et,<br><span class="u">uwuPeek</span>.</h1>
+    <p class="lead">Gerçek 3D FPS kamera, Valorant ile birebir sensitivity matematiği ve bilimsel sens bulucu. Tarayıcıda, tamamen çevrimdışı — her gün 15 dakika yeter.</p>
+    <div class="cta">
+      <a class="btn primary big" href="#antrenor">Antrenmana Başla</a>
+      <a class="btn ghost" href="#antrenor" id="heroBench">🔬 Sens Bulucu&#39;yu Çalıştır</a>
+    </div>
+    <div class="herostats">
+      <div><b class="mono" id="heroSessions">0</b><span>Oturum</span></div>
+      <div><b class="mono" id="heroBest">—</b><span>En iyi skor</span></div>
+      <div><b class="mono" id="heroCm">—</b><span>cm / 360°</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= SETUP ================= -->
+<section id="kurulum">
+  <div class="wrap">
+    <div class="eyebrow">01 · Kalibrasyon</div>
+    <h2>Kurulum</h2>
+    <p class="sub">Antrenörün fare hissi Valorant ile birebir aynı olsun diye DPI ve sens değerlerini gir. Tüm hesaplar <span class="mono">cm/360 = 13062.857 ÷ (DPI × sens)</span> formülünü kullanır.</p>
+
+    <div class="setupgrid">
+      <div class="panel">
+        <div class="field">
+          <label for="dpiInput">Fare DPI</label>
+          <input type="number" id="dpiInput" min="100" max="32000" step="50" value="1600" inputmode="numeric">
+          <div class="presets" role="group" aria-label="DPI ön ayarları">
+            <button class="preset" data-dpi="400">400</button>
+            <button class="preset" data-dpi="800">800</button>
+            <button class="preset" data-dpi="1600">1600</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="sensInput">Valorant Sens</label>
+          <input type="number" id="sensInput" min="0.01" max="10" step="0.001" value="0.21" inputmode="decimal">
+        </div>
+        <div class="hint"><b>Pro standardı:</b> Çoğu profesyonel 800 DPI kullanır — sensör örneklemesi ve Windows imleç tutarlılığı için ideal denge. 1600 DPI&#39;dan geçersen sens&#39;i ikiye katla, his aynı kalır.</div>
+        <div class="togglerow">
+          <input type="checkbox" id="muteChk">
+          <label for="muteChk">Sesleri kapat</label>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="livebox">
+          <div class="live"><b id="edpiVal" class="mono">336</b><span>eDPI</span></div>
+          <div class="live"><b id="cmVal" class="mono">38.9</b><span>cm / 360°</span></div>
+        </div>
+        <div class="livebox" style="margin-top:12px">
+          <div class="live"><b id="eq800" class="mono">0.420</b><span>800 DPI eşdeğeri</span></div>
+          <div class="live"><b id="eq400" class="mono">0.840</b><span>400 DPI eşdeğeri</span></div>
+        </div>
+        <div class="hint" style="border-color:var(--cyn);background:rgba(34,224,198,.05)"><b style="color:var(--cyn)">Referans:</b> Pro oyuncuların çoğu 30–55 cm/360 aralığındadır. Küçük hedefler için uzun (yüksek cm), hızlı açılar için kısa (düşük cm) mesafe avantajlıdır.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TRAINER ================= -->
+<section id="antrenor">
+  <div class="wrap">
+    <div class="eyebrow">02 · Antrenman</div>
+    <h2>Antrenör</h2>
+    <p class="sub">Mod seç, <b style="color:var(--txt)">BAŞLAT</b>&#39;a bas — tam ekran + işaretçi kilidi otomatik açılır. Sol tık ateş eder, <span class="mono">ESC</span> duraklatır.</p>
+
+    <div class="modetabs" role="tablist" aria-label="Antrenman modları">
+      <button class="mtab on" role="tab" aria-selected="true" data-mode="flick">⚡ Flick</button>
+      <button class="mtab" role="tab" aria-selected="false" data-mode="wide">💥 Wide Flick</button>
+      <button class="mtab" role="tab" aria-selected="false" data-mode="micro">🎯 Microshot</button>
+      <button class="mtab" role="tab" aria-selected="false" data-mode="grid">▦ Gridshot</button>
+      <button class="mtab" role="tab" aria-selected="false" data-mode="tap">👆 Tap</button>
+      <button class="mtab" role="tab" aria-selected="false" data-mode="track">◎ Tracking</button>
+      <button class="mtab" role="tab" aria-selected="false" data-mode="strafe">🏃 Strafe</button>
+      <button class="mtab" role="tab" aria-selected="false" data-mode="bench">🔬 Sens Bulucu</button>
+    </div>
+
+    <div id="arena">
+      <canvas id="cv"></canvas>
+      <div id="vig" aria-hidden="true"></div>
+
+      <!-- idle -->
+      <div class="ov show" id="ovIdle">
+        <h3 id="idleTitle">⚡ Flick</h3>
+        <p class="desc" id="idleDesc"></p>
+        <div class="meta" id="idleMeta"></div>
+        <button class="btn primary big" id="btnStart">BAŞLAT</button>
+        <div class="keyhint"><kbd>Sol tık</kbd> ateş &nbsp;·&nbsp; <kbd>ESC</kbd> duraklat</div>
+      </div>
+
+      <!-- paused -->
+      <div class="ov" id="ovPause">
+        <h3>Duraklatıldı</h3>
+        <p class="desc" id="pauseDesc">Kaldığın yerden devam edebilirsin.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+          <button class="btn primary big" id="btnResume">DEVAM ET</button>
+          <button class="btn ghost" id="btnQuit">Bitir</button>
+        </div>
+      </div>
+
+      <!-- benchmark between rounds -->
+      <div class="ov" id="ovBetween">
+        <h3 id="betPhase">Sens Bulucu</h3>
+        <div class="progressbar" aria-hidden="true"><i id="betBar" style="width:0%"></i></div>
+        <div class="betlast" id="betLast"></div>
+        <p class="betnext" id="betNext"></p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+          <button class="btn primary big" id="btnBetGo">DEVAM — SONRAKİ TUR</button>
+          <button class="btn ghost" id="btnBetQuit">Testi bitir</button>
+        </div>
+      </div>
+
+      <!-- round done -->
+      <div class="ov" id="ovDone">
+        <h3 id="doneTitle">Tur bitti</h3>
+        <div class="newbest" id="doneBest" style="display:none">★ YENİ REKOR ★</div>
+        <div class="donegrid" id="doneStats"></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+          <button class="btn primary big" id="btnAgain">TEKRAR OYNA</button>
+          <button class="btn ghost" id="btnModes">Mod seç</button>
+        </div>
+      </div>
+
+      <div id="toastArena" role="status"></div>
+    </div>
+
+    <!-- benchmark results -->
+    <div id="benchWrap">
+      <div class="panel">
+        <div class="eyebrow" style="margin-bottom:4px">Analiz Raporu</div>
+        <h2 style="font-size:22px">🔬 Sens Bulucu Sonuçları</h2>
+        <div class="reccards">
+          <div class="reccard main">
+            <span>Önerilen — <b id="recDpiLbl" style="font-size:11px">1600</b> DPI için sens</span>
+            <b id="recSensMain">—</b>
+            <small id="recCmLbl">—</small>
+          </div>
+          <div class="reccard"><span>800 DPI eşdeğeri</span><b id="recSens800">—</b><small>pro standart</small></div>
+          <div class="reccard"><span>400 DPI eşdeğeri</span><b id="recSens400">—</b><small>düşük DPI</small></div>
+        </div>
+        <div id="benchChartBox">
+          <h4>Skor / cm-360 — skor = isabet × doğruluk</h4>
+          <canvas id="benchChart" role="img" aria-label="Sens başına benchmark skorları çubuk grafiği"></canvas>
+        </div>
+        <div class="tbl-title" style="padding-left:2px">Tam sonuç tablosu</div>
+        <div class="tblwrap">
+          <table class="res" id="benchTable">
+            <thead>
+              <tr><th>cm/360</th><th>Sens<span id="thDpi"></span></th><th>İsabet</th><th>Doğruluk</th><th>Ort. Flick</th><th>Tutarlılık</th><th>Skor</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="benchNote"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROGRESS ================= -->
+<section id="ilerleme">
+  <div class="wrap">
+    <div class="eyebrow">03 · Takip</div>
+    <h2>İlerleme</h2>
+    <p class="sub">Her tur otomatik kaydedilir (bu tarayıcıda saklanır). Aim puanı, son 5 turun ortalamasıdır.</p>
+    <div class="grid4">
+      <div class="tile"><b id="tSessions" class="mono">0</b><span>Toplam oturum</span></div>
+      <div class="tile"><b id="tBest" class="mono">—</b><span>En iyi skor</span><small id="tBestMode"></small></div>
+      <div class="tile"><b id="tRec" class="mono">—</b><span>Önerilen sens</span><small id="tRecCm"></small></div>
+      <div class="tile"><b id="tRating" class="mono">—</b><span>Aim puanı</span><small id="tTrend"></small></div>
+    </div>
+    <div class="panel" id="sparkBox">
+      <div class="tbl-title" style="padding:0 0 10px">Son turlar</div>
+      <canvas id="spark" role="img" aria-label="Son antrenman turlarının skor grafiği"></canvas>
+      <div class="sparkcap">
+        <span class="chip"><i style="background:#ff4655"></i>Flick</span>
+        <span class="chip"><i style="background:#0aa290"></i>Gridshot</span>
+        <span class="chip"><i style="background:#c4821c"></i>Tracking</span>
+        <span id="sparkEmpty" style="margin-left:auto"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ROADMAP ================= -->
+<section id="yolharitasi">
+  <div class="wrap">
+    <div class="eyebrow">04 · Plan</div>
+    <h2>Gelişim Yol Haritası</h2>
+    <p class="sub">Aim bir kas hafızası işidir: kısa, düzenli, ölçülen antrenman &gt; uzun, düzensiz maraton.</p>
+    <div class="grid4 road">
+      <div class="panel"><h4><em>1. hafta</em>Sens&#39;i sabitle</h4><p>Sens Bulucu&#39;yu çalıştır, önerilen değere geç ve <b>2 hafta boyunca asla değiştirme</b>. Sürekli sens değiştirmek kas hafızasını sıfırlar.</p></div>
+      <div class="panel"><h4><em>2–3. hafta</em>Mekanik temel</h4><p>Günde 10 dk: 3 tur Gridshot + 2 tur Flick, Valorant açmadan önce. Hedef: doğruluk %85&#39;in altına düşmeden hızlanmak.</p></div>
+      <div class="panel"><h4><em>4–6. hafta</em>Tracking &amp; kontrol</h4><p>Tracking turlarını ekle (Reyna/Jett peek&#39;leri için). Deathmatch&#39;te sadece kafa hizasında gezin; kill sayını değil crosshair yerleşimini önemse.</p></div>
+      <div class="panel"><h4><em>Sürekli</em>Ölç ve uyu</h4><p>Aim puanındaki trendi haftalık kontrol et. Plato yaşarsan 2 gün ara ver — uyku, aim için en iyi ikinci antrenmandır.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REACTION ================= -->
+<section id="reaksiyon">
+  <div class="wrap">
+    <div class="eyebrow">05 · Refleks</div>
+    <h2>Reaksiyon Testi</h2>
+    <p class="sub">Kutu <b style="color:var(--grn)">yeşile</b> döndüğü an tıkla. Pro FPS oyuncuları ortalama 150–190 ms aralığındadır.</p>
+    <div id="reactBox" role="button" tabindex="0" aria-label="Reaksiyon testi — başlatmak için tıkla">
+      <h3 id="reactHead">Reaksiyon Testi</h3>
+      <b class="time" id="reactTime" style="display:none">—</b>
+      <p class="mono" id="reactMsg">Başlatmak için tıkla</p>
+    </div>
+    <div class="reactrow">
+      <div class="cell">Son 5 ort: <b id="reactAvg" class="mono">—</b></div>
+      <div class="cell">En iyi: <b id="reactBest" class="mono">—</b></div>
+      <div class="cell">Deneme: <b id="reactCount" class="mono">0</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TIPS ================= -->
+<section id="ipuclari">
+  <div class="wrap">
+    <div class="eyebrow">06 · Teknik</div>
+    <h2>Teknik İpuçları</h2>
+    <div class="grid2">
+      <div class="panel">
+        <ul class="tips">
+          <li><b>Crosshair yerleşimi &gt; flick.</b> Crosshair&#39;in her zaman düşmanın çıkacağı köşede ve kafa hizasında olsun; iyi yerleşim flick ihtiyacını %80 azaltır.</li>
+          <li><b>Kolundan nişan al, bileğinden mikro düzelt.</b> 35+ cm/360 kullanıyorsan büyük hareketler koldan gelmeli; bilek sadece son 1–2 cm&#39;lik düzeltme içindir.</li>
+          <li><b>Counter-strafe.</b> Valorant&#39;ta hareket halinde ilk mermi isabetsizdir: yön tuşunu bırak, zıt tuşa dokun, o milisaniyede ateş et.</li>
+          <li><b>Tek tık disiplini.</b> Uzun mesafede Vandal ile tek tık; sprey yalnızca 15 m altı. Aim antrenmanının maça dönüşmesi bu disiplinle olur.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h4 style="margin-bottom:8px;font-size:15.5px">Önerilen Valorant Crosshair</h4>
+        <p style="color:var(--mut);font-size:13px">Küçük, boşluksuz, cyan — bu antrenördeki crosshair ile aynı his. Valorant → Ayarlar → Crosshair → İçe Aktar:</p>
+        <div class="xhairbox">
+          <code id="xhairCode">0;s;1;P;c;1;h;0;m;1;0l;4;0o;2;0a;1;0f;0;1b;0</code>
+          <button class="btn" id="btnCopyXhair">Kopyala</button>
+        </div>
+        <div class="hint" style="margin-top:16px"><b>Not:</b> Bu sayfadaki fare hissi, işaretçi kilidi + ham giriş (unadjusted movement) sayesinde Valorant &quot;Raw Input Buffer: On&quot; ayarına denk gelir.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">uwu<b>Peek</b> AimMerkezi — tamamen çevrimdışı, tek dosya. İyi antrenmanlar. 🎯</div>
+</footer>
+
+<div id="toastPage" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   0. HELPERS & STATE
+   ============================================================ */
+var $ = function(id){ return document.getElementById(id); };
+var clamp = function(v,a,b){ return v<a?a:(v>b?b:v); };
+var rand = function(a,b){ return a + Math.random()*(b-a); };
+var round1 = function(v){ return Math.round(v*10)/10; };
+var RM = false;
+try{ RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+var VAL_CONST = 13062.857;             // cm/360 = 13062.857 / (DPI * sens)
+function cm360(dpi,sens){ return VAL_CONST/(dpi*sens); }
+function sensFor(dpi,cm){ return VAL_CONST/(dpi*cm); }
+
+/* ---------- persistent state ---------- */
+var DB_KEY='aimlab';
+var DB = {
+  sessions:0, best:0, bestMode:'', recCm:null, recSens:null,
+  recent:[], reactBest:null,
+  settings:{ dpi:1600, sens:0.21, muted:false }
+};
+function loadDB(){
+  try{
+    var raw = localStorage.getItem(DB_KEY);
+    if(raw){
+      var d = JSON.parse(raw);
+      if(d && typeof d==='object'){
+        DB.sessions = d.sessions|0;
+        DB.best = +d.best||0;
+        DB.bestMode = d.bestMode||'';
+        DB.recCm = (typeof d.recCm==='number')?d.recCm:null;
+        DB.recSens = (typeof d.recSens==='number')?d.recSens:null;
+        DB.recent = Array.isArray(d.recent)?d.recent.slice(-12):[];
+        DB.reactBest = (typeof d.reactBest==='number')?d.reactBest:null;
+        if(d.settings){
+          DB.settings.dpi = clamp(+d.settings.dpi||1600,100,32000);
+          DB.settings.sens = clamp(+d.settings.sens||0.21,0.01,10);
+          DB.settings.muted = !!d.settings.muted;
+        }
+      }
+    }
+  }catch(e){}
+}
+function saveDB(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }catch(e){} }
+loadDB();
+var S = DB.settings;
+
+/* ============================================================
+   1. AUDIO — WebAudio synth (no external files)
+   ============================================================ */
+var AC=null;
+function ac(){
+  if(S.muted) return null;
+  try{
+    if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
+    return AC;
+  }catch(e){ return null; }
+}
+function tone(o){ /* {f0,f1,dur,type,g,delay} */
+  var c=ac(); if(!c) return;
+  try{
+    var t0=c.currentTime+(o.delay||0);
+    var osc=c.createOscillator(), gn=c.createGain();
+    osc.type=o.type||'sine';
+    osc.frequency.setValueAtTime(o.f0,t0);
+    if(o.f1) osc.frequency.exponentialRampToValueAtTime(Math.max(20,o.f1),t0+o.dur);
+    gn.gain.setValueAtTime(0.0001,t0);
+    gn.gain.linearRampToValueAtTime(o.g||0.15,t0+0.006);
+    gn.gain.exponentialRampToValueAtTime(0.0001,t0+o.dur);
+    osc.connect(gn); gn.connect(c.destination);
+    osc.start(t0); osc.stop(t0+o.dur+0.03);
+  }catch(e){}
+}
+function sHit(streak){
+  var p=Math.min(streak,12)*28;
+  tone({f0:880+p,f1:1500+p,dur:0.07,type:'triangle',g:0.16});
+  tone({f0:2300,dur:0.025,type:'square',g:0.04});
+}
+function sMiss(){ tone({f0:170,f1:82,dur:0.13,type:'sine',g:0.2}); tone({f0:62,dur:0.09,type:'square',g:0.045}); }
+function sTick(){ tone({f0:940,dur:0.045,type:'square',g:0.06}); }
+function sGo(){ tone({f0:1240,f1:1650,dur:0.11,type:'triangle',g:0.14}); }
+function sEnd(){ tone({f0:660,dur:0.1,type:'triangle',g:0.12}); tone({f0:990,dur:0.16,type:'triangle',g:0.12,delay:0.11}); }
+function sStreak(){ tone({f0:780,f1:1560,dur:0.14,type:'sawtooth',g:0.07}); }
+function sReadyGo(){ tone({f0:520,dur:0.06,type:'triangle',g:0.1}); }
+
+/* ============================================================
+   2. SETTINGS UI
+   ============================================================ */
+var dpiInput=$('dpiInput'), sensInput=$('sensInput'), muteChk=$('muteChk');
+dpiInput.value=S.dpi; sensInput.value=S.sens; muteChk.checked=S.muted;
+
+function fmt(v,d){ return (+v).toFixed(d); }
+function refreshSetup(){
+  var e = S.dpi*S.sens, cm = cm360(S.dpi,S.sens);
+  $('edpiVal').textContent = Math.round(e);
+  $('cmVal').textContent = fmt(cm,1);
+  $('eq800').textContent = fmt(sensFor(800,cm),3);
+  $('eq400').textContent = fmt(sensFor(400,cm),3);
+  $('heroCm').textContent = fmt(cm,1)+' cm';
+  var btns=document.querySelectorAll('.preset');
+  for(var i=0;i<btns.length;i++) btns[i].classList.toggle('on', +btns[i].dataset.dpi===S.dpi);
+}
+dpiInput.addEventListener('change',function(){
+  S.dpi = clamp(Math.round(+dpiInput.value)||1600,100,32000);
+  dpiInput.value=S.dpi; refreshSetup(); saveDB();
+});
+sensInput.addEventListener('change',function(){
+  S.sens = clamp(+sensInput.value||0.21,0.01,10);
+  sensInput.value=S.sens; refreshSetup(); saveDB();
+});
+document.querySelectorAll('.preset').forEach(function(b){
+  b.addEventListener('click',function(){
+    S.dpi=+b.dataset.dpi; dpiInput.value=S.dpi; refreshSetup(); saveDB();
+  });
+});
+muteChk.addEventListener('change',function(){ S.muted=muteChk.checked; saveDB(); });
+
+/* ============================================================
+   3. 3D ENGINE — camera, projection, world
+   ============================================================ */
+var arena=$('arena'), cv=$('cv'), ctx=cv.getContext('2d');
+var W=960,H=540,focal=500;
+var HFOV=1.6, EYE_FLOOR=-1.6, NEAR=0.08;
+var yaw=0,pitch=0;
+var cy=1,sy_=0,cp=1,sp=0;   // cached trig per frame
+
+function resize(){
+  var r=arena.getBoundingClientRect();
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  W=Math.max(320,Math.round(r.width));
+  H=Math.max(180,Math.round(r.height));
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  focal=(W/2)/Math.tan(HFOV/2);
+}
+try{ new ResizeObserver(resize).observe(arena); }catch(e){ window.addEventListener('resize',resize); }
+resize();
+
+function camPoint(x,y,z){
+  var x1=x*cy - z*sy_;
+  var z1=x*sy_ + z*cy;
+  var y2=y*cp - z1*sp;
+  var z2=y*sp + z1*cp;
+  return [x1,y2,z2];
+}
+function project(c){ return [W/2 + (c[0]/c[2])*focal, H/2 - (c[1]/c[2])*focal]; }
+function fwdVec(){ return [Math.sin(yaw)*Math.cos(pitch), Math.sin(pitch), Math.cos(yaw)*Math.cos(pitch)]; }
+
+function line3(ax,ay,az,bx,by,bz,style,width){
+  var A=camPoint(ax,ay,az), B=camPoint(bx,by,bz);
+  if(A[2]<NEAR && B[2]<NEAR) return;
+  var t;
+  if(A[2]<NEAR){ t=(NEAR-A[2])/(B[2]-A[2]); A=[A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, NEAR]; }
+  else if(B[2]<NEAR){ t=(NEAR-B[2])/(A[2]-B[2]); B=[B[0]+(A[0]-B[0])*t, B[1]+(A[1]-B[1])*t, NEAR]; }
+  var p=project(A), q=project(B);
+  ctx.strokeStyle=style; ctx.lineWidth=width||1;
+  ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke();
+}
+
+/* ---------- sensitivity: radians per mouse count ---------- */
+function currentCm(){ return game.cmOverride!==null ? game.cmOverride : cm360(S.dpi,S.sens); }
+function radPerCount(){ return (914.4/(currentCm()*S.dpi))*Math.PI/180; }
+
+/* ============================================================
+   4. GAME STATE
+   ============================================================ */
+var MODES = {
+  flick:{ name:'⚡ Flick', dur:30, family:'flick', tR:0.55, dyR:0.5, dpLo:-0.26, dpHi:0.2, dLo:10, dHi:14,
+    desc:'Tek hedef belirir — ona flick at ve tek tıkla vur. Hız, doğruluk ve flick süreni ölçer.',
+    meta:['<span>Süre <b>30 sn</b></span>','<span>Ölçüm <b>isabet · doğruluk · flick ms</b></span>'] },
+  wide:{ name:'💥 Wide Flick', dur:30, family:'flick', tR:0.62, dyR:1.0, dpLo:-0.35, dpHi:0.35, dLo:9, dHi:13,
+    desc:'Geniş açılı flick — hedefler daha uzağa, daha büyük açılarla belirir. Kol hareketini ve büyük açı kontrolünü geliştirir.',
+    meta:['<span>Süre <b>30 sn</b></span>','<span>Ölçüm <b>isabet · doğruluk · flick ms</b></span>'] },
+  micro:{ name:'🎯 Microshot', dur:30, family:'flick', tR:0.30, dyR:0.4, dpLo:-0.2, dpHi:0.16, dLo:11, dHi:14,
+    desc:'Minik hedefler, dar açı — saf hassasiyet. Bilek kontrolünü ve mikro düzeltmeyi keskinleştirir. Zor ama en çok geliştiren mod.',
+    meta:['<span>Süre <b>30 sn</b></span>','<span>Ölçüm <b>isabet · doğruluk</b></span>'] },
+  grid:{ name:'▦ Gridshot', dur:40, family:'grid', count:5, tR:0.5,
+    desc:'Aynı anda 5 hedef. Hepsini olabildiğince hızlı temizle; vurdukça yenisi doğar. En tatmin edici ısınma modu.',
+    meta:['<span>Süre <b>40 sn</b></span>','<span>Ölçüm <b>isabet/dk · doğruluk</b></span>'] },
+  tap:{ name:'👆 Tap / Refleks', dur:30, family:'tap', tR:0.5, life:1150, dLo:10, dHi:13,
+    desc:'Hedef belirir ve kısa süre sonra kaybolur — kaybolmadan tıkla! Refleksini ve hızlı hedef yakalamanı ölçer.',
+    meta:['<span>Süre <b>30 sn</b></span>','<span>Ölçüm <b>isabet/dk · doğruluk</b></span>'] },
+  track:{ name:'◎ Tracking', dur:30, family:'track', tR:0.72, strafe:false,
+    desc:'Hedef akıcı biçimde hareket eder — tıklama yok, crosshair&#39;i sürekli üzerinde tut. Hedef üstünde kalma yüzdeni ölçer.',
+    meta:['<span>Süre <b>30 sn</b></span>','<span>Ölçüm <b>hedefte kalma %</b></span>'] },
+  strafe:{ name:'🏃 Strafe Track', dur:30, family:'track', tR:0.6, strafe:true,
+    desc:'Hedef sert biçimde yana kaçar (strafe) — takibi çok daha zor. Gerçek düello reaksiyonunu ve hızlı takibi geliştirir.',
+    meta:['<span>Süre <b>30 sn</b></span>','<span>Ölçüm <b>hedefte kalma %</b></span>'] },
+  bench:{ name:'🔬 Sens Bulucu', dur:15, family:'flick', tR:0.55, dyR:0.5, dpLo:-0.26, dpHi:0.2, dLo:10, dHi:14,
+    desc:'İki fazlı bilimsel test: 1 ısınma + 5 kaba tarama + 3 ince ayar turu. Her tur farklı bir cm/360 ile oynanır; sonunda ideal Valorant sens&#39;in hesaplanır. (~3 dk, tam ekran korunur)',
+    meta:['<span>9 tur <b>~3 dk</b></span>','<span>Skor <b>isabet × doğruluk</b></span>','<span>Çıktı <b>ideal sens önerisi</b></span>'] }
+};
+function fam(){ return (MODES[game.mode]||{}).family || 'flick'; }
+var curMode='flick';
+
+var game = {
+  state:'idle',           // idle | countdown | running | paused | between | done
+  mode:'flick',
+  duration:30, remainMs:30000,
+  roundEndT:0, cdEnd:0, lastCd:4,
+  cmOverride:null,
+  targets:[],
+  stats:null,
+  streak:0, bestStreak:0, streakPulseT:0,
+  goFlashT:0,
+  bench:null
+};
+var expectUnlock=false;
+var wantLock=false;
+var particles=[], popups=[];
+var hitmark={t:-9999};
+var shake={x:0,y:0};
+var idleYaw=0;
+
+function freshStats(){ return { hits:0, shots:0, flickTimes:[], onMs:0, totalMs:0 }; }
+
+/* ---------- targets ---------- */
+function mkTarget(pos,r){ return { pos:pos, r:r, born:performance.now(), spawn:performance.now(), _sx:W/2,_sy:H/2,_sr:10, on:false }; }
+
+function spawnFlickTarget(){
+  var C=MODES[game.mode]||{};
+  var tR=C.tR||0.55, dyR=(C.dyR!=null?C.dyR:0.5),
+      dpLo=(C.dpLo!=null?C.dpLo:-0.26), dpHi=(C.dpHi!=null?C.dpHi:0.2),
+      dLo=C.dLo||10, dHi=C.dHi||14;
+  var minAng = C.tR && C.tR<0.4 ? 0.10 : 0.14;   // microshot: biraz daha yakın olabilir
+  var best=null;
+  for(var i=0;i<24;i++){
+    var dy=rand(-dyR,dyR), dp=rand(dpLo,dpHi);
+    var Y=yaw+dy, P=clamp(pitch+dp,-0.07,0.9);
+    var offY=Y-yaw, offP=P-pitch;
+    var ang=Math.sqrt(offY*offY+offP*offP);
+    if(ang<minAng && i<20) continue;
+    var d=rand(dLo,dHi);
+    var pos=[Math.sin(Y)*Math.cos(P)*d, Math.sin(P)*d, Math.cos(Y)*Math.cos(P)*d];
+    best=pos; if(ang>=minAng) break;
+  }
+  if(!best) best=[Math.sin(yaw)*11,0.4,Math.cos(yaw)*11];
+  var t=mkTarget(best,tR);
+  game.targets.push(t);
+  return t;
+}
+function spawnTapTarget(){
+  var C=MODES.tap;
+  var pos=[rand(-6.5,6.5), rand(-1.0,2.6), rand(C.dLo||10, C.dHi||13)];
+  var t=mkTarget(pos, C.tR||0.5);
+  t.life = C.life||1150;
+  game.targets.push(t);
+  return t;
+}
+function spawnGridTarget(){
+  for(var i=0;i<40;i++){
+    var pos=[rand(-6,6), rand(-1.0,2.6), rand(10.5,13)];
+    var ok=true;
+    for(var j=0;j<game.targets.length;j++){
+      var q=game.targets[j].pos;
+      var dx=pos[0]-q[0],dyy=pos[1]-q[1],dz=pos[2]-q[2];
+      if(dx*dx+dyy*dyy+dz*dz < 1.8*1.8){ ok=false; break; }
+    }
+    if(ok){ game.targets.push(mkTarget(pos,0.5)); return; }
+  }
+  game.targets.push(mkTarget([rand(-6,6),rand(-1,2.6),12],0.5));
+}
+function spawnTracker(){
+  var t=mkTarget([0,0.7,12],0.72);
+  t.age=0;
+  t.p1=rand(0,6.28); t.p2=rand(0,6.28); t.p3=rand(0,6.28); t.p4=rand(0,6.28);
+  game.targets.push(t);
+}
+function moveTracker(t,dt){
+  t.age+=dt;
+  var a=t.age;
+  if((MODES[game.mode]||{}).strafe){
+    // sert strafe: hızlı, keskin yön değişimli yatay kaçış
+    t.pos[0]=7.2*Math.sin(a*1.15+t.p1) + 1.6*Math.sin(a*2.7+t.p2);
+    t.pos[1]=0.8+0.8*Math.sin(a*0.8+t.p3);
+    t.pos[2]=12+1.3*Math.sin(a*0.45+t.p4);
+    return;
+  }
+  t.pos[0]=7.0*Math.sin(a*0.55+t.p1)*Math.cos(a*0.21+t.p2);
+  t.pos[1]=0.7+1.5*Math.sin(a*0.9+t.p3)*Math.cos(a*0.17);
+  t.pos[2]=12+2.5*Math.sin(a*0.33+t.p4);
+}
+
+/* ---------- raycast ---------- */
+function rayHit(t,slack){
+  var f=fwdVec(), c=t.pos;
+  var dot=c[0]*f[0]+c[1]*f[1]+c[2]*f[2];
+  if(dot<=0) return false;
+  var len2=c[0]*c[0]+c[1]*c[1]+c[2]*c[2];
+  var per2=len2-dot*dot;
+  var r=t.r*(slack||1);
+  return per2 <= r*r;
+}
+
+/* ============================================================
+   5. POINTER LOCK & FULLSCREEN LIFECYCLE
+   ============================================================ */
+function enterFS(){
+  if(document.fullscreenElement) return;
+  try{
+    var p=arena.requestFullscreen();
+    if(p && p.catch) p.catch(function(){});
+  }catch(e){}
+}
+function exitFS(){
+  if(document.fullscreenElement){
+    try{ var p=document.exitFullscreen(); if(p&&p.catch)p.catch(function(){}); }catch(e){}
+  }
+}
+function lockPointer(){
+  if(document.pointerLockElement===cv) return;
+  try{
+    var p=cv.requestPointerLock({unadjustedMovement:true});
+    if(p && p.catch) p.catch(function(){
+      try{ cv.requestPointerLock(); }catch(e){}
+    });
+  }catch(e){
+    try{ cv.requestPointerLock(); }catch(e2){}
+  }
+}
+function unlockPointer(){
+  if(document.pointerLockElement){
+    expectUnlock=true;
+    try{ document.exitPointerLock(); }catch(e){}
+  }
+}
+/* Güvenilir: önce tam ekran, tam ekran aktif olunca fare kilidi istenir (çakışma önlenir). */
+function armLock(){
+  if(document.pointerLockElement===cv) return;
+  if(document.fullscreenElement){ lockPointer(); return; }
+  wantLock=true; enterFS();
+  setTimeout(function(){ if(wantLock){ wantLock=false; lockPointer(); } }, 400);
+}
+document.addEventListener('pointerlockchange',function(){
+  var locked = document.pointerLockElement===cv;
+  if(locked){ expectUnlock=false; return; }
+  if(!expectUnlock && (game.state==='running'||game.state==='countdown')) pauseRound();
+  expectUnlock=false;
+});
+document.addEventListener('pointerlockerror',function(){
+  if(game.state==='countdown'||game.state==='running'){
+    pauseRound('İşaretçi kilidi alınamadı — DEVAM ET&#39;e tekrar tıkla.');
+  }else{
+    arenaToast('İşaretçi kilidi alınamadı — tekrar dene');
+  }
+});
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden && (game.state==='running'||game.state==='countdown')) pauseRound();
+});
+document.addEventListener('mousemove',function(e){
+  if(document.pointerLockElement!==cv) return;
+  if(game.state!=='running' && game.state!=='countdown') return;
+  var r=radPerCount();
+  yaw += (e.movementX||0)*r;
+  pitch -= (e.movementY||0)*r;
+  pitch = clamp(pitch,-1.45,1.45);
+});
+cv.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+cv.addEventListener('mousedown',function(e){
+  if(e.button!==0) return;
+  if(document.pointerLockElement!==cv) return;
+  if(game.state!=='running') return;
+  e.preventDefault();
+  shoot();
+});
+
+/* ============================================================
+   6. ROUND FLOW
+   ============================================================ */
+var ovIdle=$('ovIdle'), ovPause=$('ovPause'), ovBetween=$('ovBetween'), ovDone=$('ovDone');
+function showOv(el){
+  [ovIdle,ovPause,ovBetween,ovDone].forEach(function(o){ o.classList.toggle('show',o===el); });
+}
+function arenaToast(msg){
+  var t=$('toastArena'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(arenaToast._h);
+  arenaToast._h=setTimeout(function(){ t.classList.remove('show'); },2200);
+}
+function pageToast(msg){
+  var t=$('toastPage'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(pageToast._h);
+  pageToast._h=setTimeout(function(){ t.classList.remove('show'); },2200);
+}
+
+function setTabsEnabled(on){
+  document.querySelectorAll('.mtab').forEach(function(b){ b.disabled=!on; });
+}
+function selectMode(m){
+  curMode=m;
+  document.querySelectorAll('.mtab').forEach(function(b){
+    var onIt=b.dataset.mode===m;
+    b.classList.toggle('on',onIt);
+    b.setAttribute('aria-selected',onIt?'true':'false');
+  });
+  var M=MODES[m];
+  $('idleTitle').textContent=M.name;
+  $('idleDesc').innerHTML=M.desc;
+  $('idleMeta').innerHTML=M.meta.join('');
+  showOv(ovIdle);
+  game.state='idle';
+}
+document.querySelectorAll('.mtab').forEach(function(b){
+  b.addEventListener('click',function(){ if(!b.disabled) selectMode(b.dataset.mode); });
+});
+
+function beginRound(cfg){
+  cfg=cfg||{};
+  game.cmOverride = (typeof cfg.cm==='number') ? cfg.cm : null;
+  game.duration = cfg.dur || MODES[game.mode].dur;
+  game.remainMs = game.duration*1000;
+  game.roundLabel = cfg.label || '';
+  yaw=0; pitch=0;
+  game.targets=[]; game.stats=freshStats();
+  game.streak=0; game.bestStreak=0;
+  particles.length=0; popups.length=0;
+  hitmark.t=-9999;
+  var f0=fam();
+  if(f0==='grid'){ var gn=MODES[game.mode].count||5; for(var i=0;i<gn;i++) spawnGridTarget(); }
+  if(f0==='track'){ spawnTracker(); }
+  game.state='countdown';
+  game.cdEnd=performance.now()+3200;
+  game.lastCd=4;
+  showOv(null);
+  setTabsEnabled(false);
+}
+function startRunning(now){
+  game.state='running';
+  game.roundEndT=now+game.remainMs;
+  game.goFlashT=now;
+  var f1=fam();
+  if(f1==='flick'){
+    if(game.targets.length===0) spawnFlickTarget();
+    else game.targets[0].spawn=now; // resume: reset flick timer
+  }else if(f1==='tap'){
+    if(game.targets.length===0) spawnTapTarget();
+  }
+  sGo();
+}
+function pauseRound(msg){
+  if(game.state!=='running' && game.state!=='countdown') return;
+  var now=performance.now();
+  if(game.state==='running') game.remainMs=Math.max(500,game.roundEndT-now);
+  game.state='paused';
+  unlockPointer();
+  $('pauseDesc').innerHTML = msg || (game.mode==='bench'
+    ? 'Sens Bulucu duraklatıldı — test verilerin korunuyor.'
+    : 'Kaldığın yerden devam edebilirsin.');
+  showOv(ovPause);
+}
+$('btnResume').addEventListener('click',function(){
+  if(game.state!=='paused') return;
+  armLock();
+  showOv(null);
+  game.state='countdown';
+  game.cdEnd=performance.now()+1600;
+  game.lastCd=4;
+});
+$('btnQuit').addEventListener('click',function(){
+  if(game.state!=='paused') return;
+  if(game.mode==='bench' && game.bench && game.bench.results.length>=2){
+    finishBench(true);
+  }else{
+    abortToIdle();
+  }
+});
+function abortToIdle(){
+  game.state='idle'; game.bench=null; game.cmOverride=null; game.targets=[];
+  unlockPointer(); exitFS();
+  setTabsEnabled(true);
+  selectMode(curMode);
+}
+
+$('btnStart').addEventListener('click',function(){
+  ac(); // unlock audio on gesture
+  game.mode=curMode;
+  if(curMode==='bench'){ startBench(); return; }
+  armLock();
+  beginRound();
+});
+$('btnAgain').addEventListener('click',function(){
+  ac();
+  game.mode=curMode;
+  if(curMode==='bench'){ startBench(); return; }
+  armLock();
+  beginRound();
+});
+$('btnModes').addEventListener('click',function(){
+  setTabsEnabled(true);
+  selectMode(curMode);
+});
+$('heroBench').addEventListener('click',function(){
+  if(game.state==='idle'||game.state==='done') selectMode('bench');
+});
+
+/* ---------- end of a round ---------- */
+function computeResults(){
+  var st=game.stats, mode=game.mode;
+  var res={ mode:mode, hits:st.hits, shots:st.shots, bestStreak:game.bestStreak };
+  if(MODES[mode] && MODES[mode].family==='track'){
+    res.acc = st.totalMs>0 ? st.onMs/st.totalMs : 0;
+    res.onPct = res.acc*100;
+    res.score = Math.round(res.onPct*50);
+  }else{
+    res.acc = st.shots>0 ? st.hits/st.shots : 0;
+    var spm = st.hits*60/game.duration;
+    res.spm = spm;
+    res.score = Math.round(spm*res.acc*100);
+    if(st.flickTimes.length){
+      var sum=0,i;
+      for(i=0;i<st.flickTimes.length;i++) sum+=st.flickTimes[i];
+      res.avgFlick = sum/st.flickTimes.length;
+      if(st.flickTimes.length>=2){
+        var m=res.avgFlick, v=0;
+        for(i=0;i<st.flickTimes.length;i++){ var d=st.flickTimes[i]-m; v+=d*d; }
+        res.stdFlick = Math.sqrt(v/(st.flickTimes.length-1));
+      }else res.stdFlick=null;
+    }else{ res.avgFlick=null; res.stdFlick=null; }
+  }
+  return res;
+}
+function endRound(){
+  var res=computeResults();
+  sEnd();
+  if(game.mode==='bench'){ benchRoundDone(res); return; }
+  // normal modes: save + done overlay
+  game.state='done';
+  unlockPointer(); exitFS();
+  setTabsEnabled(true);
+  saveRound(res);
+  showDone(res);
+}
+function saveRound(res){
+  DB.sessions++;
+  var isBest = res.score>DB.best;
+  if(isBest){ DB.best=res.score; DB.bestMode=res.mode; }
+  DB.recent.push({m:res.mode,s:res.score,t:Date.now()});
+  DB.recent=DB.recent.slice(-12);
+  saveDB();
+  renderProgress();
+  return isBest;
+}
+function showDone(res){
+  var name=MODES[res.mode].name;
+  $('doneTitle').textContent=name+' — tur bitti';
+  $('doneBest').style.display=(res.score>=DB.best && res.score>0 && DB.bestMode===res.mode)?'block':'none';
+  var cells='';
+  function cell(v,l,c){ return '<div class="cell"><b style="color:'+(c||'var(--txt)')+'">'+v+'</b><span>'+l+'</span></div>'; }
+  cells+=cell(res.score,'Skor','var(--cyn)');
+  var rf=(MODES[res.mode]||{}).family||'flick';
+  if(rf==='track'){
+    cells+=cell(res.onPct.toFixed(1)+'%','Hedefte kalma','var(--grn)');
+  }else{
+    cells+=cell(res.hits,'İsabet');
+    cells+=cell(Math.round(res.acc*100)+'%','Doğruluk',res.acc>=0.85?'var(--grn)':'var(--gld)');
+    if(rf==='flick' && res.avgFlick!==null){
+      cells+=cell(Math.round(res.avgFlick)+'ms','Ort. flick');
+      cells+=cell(res.stdFlick!==null?'±'+Math.round(res.stdFlick)+'ms':'—','Tutarlılık');
+    }else{
+      cells+=cell(res.spm.toFixed(0),'İsabet / dk');
+    }
+    cells+=cell('×'+res.bestStreak,'En iyi seri','var(--gld)');
+  }
+  $('doneStats').innerHTML=cells;
+  showOv(ovDone);
+}
+
+/* ============================================================
+   7. SHOOTING
+   ============================================================ */
+function shoot(){
+  var now=performance.now();
+  if(fam()==='track') return; // tracking: no clicking
+  var st=game.stats;
+  st.shots++;
+  // pick the hit target closest to the ray
+  var hit=null, bestPer=1e9;
+  for(var i=0;i<game.targets.length;i++){
+    var t=game.targets[i];
+    if(rayHit(t,1)){
+      var f=fwdVec(), c=t.pos;
+      var dot=c[0]*f[0]+c[1]*f[1]+c[2]*f[2];
+      var per=(c[0]*c[0]+c[1]*c[1]+c[2]*c[2])-dot*dot;
+      if(per<bestPer){ bestPer=per; hit=t; }
+    }
+  }
+  if(hit){
+    st.hits++;
+    game.streak++;
+    if(game.streak>game.bestStreak) game.bestStreak=game.streak;
+    var idx=game.targets.indexOf(hit);
+    if(idx>=0) game.targets.splice(idx,1);
+    sHit(game.streak);
+    hitmark.t=now;
+    if(!RM){
+      spawnBurst(hit._sx,hit._sy,hit._sr);
+      shake.x=rand(-1.4,1.4); shake.y=rand(-1.4,1.4);
+    }
+    var fS=fam();
+    if(fS==='flick'){
+      var ms=now-hit.spawn;
+      st.flickTimes.push(ms);
+      addPopup(hit._sx,hit._sy-hit._sr-6, Math.round(ms)+'ms', ms<400?'#ffbd4a':'#e9eef3');
+      spawnFlickTarget();
+    }else if(fS==='tap'){
+      addPopup(hit._sx,hit._sy-hit._sr-6,'+'+(10+Math.min(game.streak,15)),'#ffbd4a');
+      spawnTapTarget();
+    }else{ // grid
+      addPopup(hit._sx,hit._sy-hit._sr-6,'+'+(10+Math.min(game.streak,15)),'#ffbd4a');
+      spawnGridTarget();
+    }
+    if(game.streak>0 && game.streak%5===0){
+      addPopup(W/2,H/2-70,'SERİ ×'+game.streak,'#ff4655',true);
+      game.streakPulseT=now;
+      sStreak();
+    }
+  }else{
+    game.streak=0;
+    sMiss();
+    if(!RM){ shake.x=rand(-2.4,2.4); shake.y=rand(-2.4,2.4); }
+  }
+}
+
+/* ============================================================
+   8. FX — particles, popups, hitmarker
+   ============================================================ */
+function spawnBurst(x,y,r){
+  var n=14;
+  for(var i=0;i<n;i++){
+    var a=Math.random()*Math.PI*2, sp2=rand(70,290);
+    particles.push({
+      x:x,y:y,vx:Math.cos(a)*sp2,vy:Math.sin(a)*sp2-60,
+      life:0,max:rand(0.35,0.6),
+      size:rand(1.5,3.6),
+      c:Math.random()<0.65?'#ff4655':(Math.random()<0.5?'#ffbd4a':'#ffd9dd')
+    });
+  }
+}
+function addPopup(x,y,txt,color,big){
+  popups.push({x:x,y:y,txt:txt,c:color,born:performance.now(),dur:big?900:700,big:!!big});
+}
+function updateFx(dt){
+  for(var i=particles.length-1;i>=0;i--){
+    var p=particles[i];
+    p.life+=dt;
+    if(p.life>=p.max){ particles.splice(i,1); continue; }
+    p.vy+=520*dt;
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+  }
+  shake.x*=Math.pow(0.0001,dt); shake.y*=Math.pow(0.0001,dt);
+}
+function drawFx(now){
+  if(particles.length){
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      var a=1-p.life/p.max;
+      ctx.globalAlpha=a;
+      ctx.fillStyle=p.c;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size*a+0.5,0,6.283); ctx.fill();
+    }
+    ctx.restore();
+    ctx.globalAlpha=1;
+  }
+  for(var j=popups.length-1;j>=0;j--){
+    var u=popups[j];
+    var t=(now-u.born)/u.dur;
+    if(t>=1){ popups.splice(j,1); continue; }
+    var rise=RM?0:(u.big?26:32)*t;
+    ctx.globalAlpha=t<0.7?1:(1-(t-0.7)/0.3);
+    ctx.font=(u.big?'900 26px ':'700 14px ')+'Consolas, ui-monospace, monospace';
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,0,0,.55)';
+    ctx.fillText(u.txt,u.x+1,u.y-rise+1);
+    ctx.fillStyle=u.c;
+    ctx.fillText(u.txt,u.x,u.y-rise);
+    ctx.globalAlpha=1;
+  }
+}
+function drawHitmarker(now){
+  var e=now-hitmark.t;
+  if(e>150) return;
+  var pr=e/150, cxx=W/2, cyy=H/2;
+  var d=6+pr*9, L=5;
+  ctx.save();
+  ctx.globalAlpha=1-pr;
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=2; ctx.lineCap='round';
+  ctx.beginPath();
+  [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(function(q){
+    ctx.moveTo(cxx+q[0]*d, cyy+q[1]*d);
+    ctx.lineTo(cxx+q[0]*(d+L), cyy+q[1]*(d+L));
+  });
+  ctx.stroke();
+  ctx.globalAlpha=(1-pr)*0.45;
+  ctx.strokeStyle='#22e0c6'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cxx,cyy,10+pr*16,0,6.283); ctx.stroke();
+  ctx.restore();
+}
+function drawCrosshair(){
+  var x=Math.round(W/2), y=Math.round(H/2);
+  var gap=4, len=7, th=2;
+  ctx.save();
+  ctx.lineCap='butt';
+  // dark outline
+  ctx.strokeStyle='rgba(0,0,0,.8)'; ctx.lineWidth=th+2;
+  ctx.beginPath();
+  ctx.moveTo(x-gap-len-1,y); ctx.lineTo(x-gap+1,y);
+  ctx.moveTo(x+gap-1,y); ctx.lineTo(x+gap+len+1,y);
+  ctx.moveTo(x,y-gap-len-1); ctx.lineTo(x,y-gap+1);
+  ctx.moveTo(x,y+gap-1); ctx.lineTo(x,y+gap+len+1);
+  ctx.stroke();
+  // cyan cross
+  ctx.strokeStyle='#22e0c6'; ctx.lineWidth=th;
+  ctx.beginPath();
+  ctx.moveTo(x-gap-len,y); ctx.lineTo(x-gap,y);
+  ctx.moveTo(x+gap,y); ctx.lineTo(x+gap+len,y);
+  ctx.moveTo(x,y-gap-len); ctx.lineTo(x,y-gap);
+  ctx.moveTo(x,y+gap); ctx.lineTo(x,y+gap+len);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* ============================================================
+   9. WORLD RENDER — high-tech firing range
+   ============================================================ */
+var RX=16, RZN=-7, RZF=34, RFL=EYE_FLOOR, RCEIL=5.8;
+
+function clipNear(cpts){
+  var out=[];
+  for(var i=0;i<cpts.length;i++){
+    var A=cpts[i], B=cpts[(i+1)%cpts.length];
+    var Ain=A[2]>=NEAR, Bin=B[2]>=NEAR;
+    if(Ain) out.push(A);
+    if(Ain!==Bin){
+      var t=(NEAR-A[2])/(B[2]-A[2]);
+      out.push([A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, NEAR]);
+    }
+  }
+  return out;
+}
+function poly3(pts,fill){
+  var c=[]; for(var i=0;i<pts.length;i++) c.push(camPoint(pts[i][0],pts[i][1],pts[i][2]));
+  c=clipNear(c);
+  if(c.length<3) return;
+  ctx.beginPath();
+  for(var j=0;j<c.length;j++){ var s=project(c[j]); if(j===0)ctx.moveTo(s[0],s[1]); else ctx.lineTo(s[0],s[1]); }
+  ctx.closePath(); ctx.fillStyle=fill; ctx.fill();
+}
+function box3(x,z,hw,h){
+  var y0=RFL,y1=RFL+h,x0=x-hw,x1=x+hw,z0=z-hw,z1=z+hw;
+  poly3([[x0,y0,z1],[x0,y0,z0],[x0,y1,z0],[x0,y1,z1]],'#0e1620');
+  poly3([[x1,y0,z0],[x1,y0,z1],[x1,y1,z1],[x1,y1,z0]],'#0e1620');
+  poly3([[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]],'#16212d');
+  poly3([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],'#1d2a38');
+  line3(x0,y1,z0,x1,y1,z0,'rgba(34,224,198,0.55)',1.6);
+  line3(x0,y1,z0,x0,y1,z1,'rgba(34,224,198,0.32)',1.2);
+  line3(x1,y1,z0,x1,y1,z1,'rgba(34,224,198,0.32)',1.2);
+  line3(x0,y0,z0,x0,y1,z0,'rgba(255,70,85,0.18)',1);
+  line3(x1,y0,z0,x1,y1,z0,'rgba(255,70,85,0.18)',1);
+}
+
+var dust=[];
+(function(){ for(var i=0;i<44;i++) dust.push([rand(-RX+2,RX-2),rand(RFL+0.5,RCEIL-0.5),rand(2,RZF-3),rand(0,6.28)]); })();
+
+function drawWorld(now){
+  cy=Math.cos(yaw); sy_=Math.sin(yaw);
+  cp=Math.cos(pitch); sp=Math.sin(pitch);
+  var CYN='rgba(34,224,198,', RED='rgba(255,70,85,';
+
+  ctx.fillStyle='#04060a'; ctx.fillRect(0,0,W,H);
+
+  // ---- back wall (vertical gradient via bands) ----
+  var bands=8;
+  for(var b=0;b<bands;b++){
+    var by0=RFL+(RCEIL-RFL)*b/bands, by1=RFL+(RCEIL-RFL)*(b+1)/bands, tc=b/bands;
+    var col='rgb('+Math.round(10+tc*8)+','+Math.round(17+tc*14)+','+Math.round(24+tc*18)+')';
+    poly3([[-RX,by0,RZF],[RX,by0,RZF],[RX,by1,RZF],[-RX,by1,RZF]],col);
+  }
+  // ---- side walls, ceiling, floor ----
+  poly3([[-RX,RFL,RZN],[-RX,RFL,RZF],[-RX,RCEIL,RZF],[-RX,RCEIL,RZN]],'#0a111a');
+  poly3([[RX,RFL,RZF],[RX,RFL,RZN],[RX,RCEIL,RZN],[RX,RCEIL,RZF]],'#0a111a');
+  poly3([[-RX,RCEIL,RZN],[-RX,RCEIL,RZF],[RX,RCEIL,RZF],[RX,RCEIL,RZN]],'#070c12');
+  poly3([[-RX,RFL,RZN],[RX,RFL,RZN],[RX,RFL,RZF],[-RX,RFL,RZF]],'#0a1017');
+
+  // ---- neon seams ----
+  line3(-RX,RFL,RZN,-RX,RFL,RZF,CYN+'0.55)',2);
+  line3(RX,RFL,RZN,RX,RFL,RZF,CYN+'0.55)',2);
+  line3(-RX,RFL,RZF,RX,RFL,RZF,RED+'0.5)',2.2);
+  line3(-RX,RCEIL,RZN,-RX,RCEIL,RZF,CYN+'0.22)',1.4);
+  line3(RX,RCEIL,RZN,RX,RCEIL,RZF,CYN+'0.22)',1.4);
+  line3(-RX,RCEIL,RZF,RX,RCEIL,RZF,CYN+'0.3)',1.4);
+  line3(-RX,RFL,RZF,-RX,RCEIL,RZF,CYN+'0.3)',1.4);
+  line3(RX,RFL,RZF,RX,RCEIL,RZF,CYN+'0.3)',1.4);
+
+  // ---- ceiling light strips ----
+  for(var lx=-9;lx<=9;lx+=9){
+    line3(lx,RCEIL-0.03,3, lx,RCEIL-0.03,RZF-2,'rgba(190,255,247,0.55)',3);
+    line3(lx,RCEIL-0.03,3, lx,RCEIL-0.03,RZF-2,'rgba(190,255,247,0.14)',7);
+  }
+
+  // ---- floor grid ----
+  var STEP=3;
+  for(var gx=-RX;gx<=RX;gx+=STEP){
+    var a1=0.05+0.13*(1-Math.abs(gx)/RX);
+    line3(gx,RFL+0.006,RZN, gx,RFL+0.006,RZF, gx===0?CYN+'0.32)':CYN+a1.toFixed(3)+')', gx===0?1.6:1);
+  }
+  for(var gz=Math.ceil(RZN/STEP)*STEP; gz<=RZF; gz+=STEP){
+    var a2=0.05+0.11*(1-gz/RZF);
+    line3(-RX,RFL+0.006,gz, RX,RFL+0.006,gz, CYN+a2.toFixed(3)+')',1);
+  }
+
+  // ---- back wall panels + mid band ----
+  for(var wx=-12;wx<=12;wx+=6) line3(wx,RFL,RZF-0.03, wx,RCEIL,RZF-0.03, CYN+'0.10)',1);
+  line3(-RX,2.0,RZF-0.03, RX,2.0,RZF-0.03, CYN+'0.16)',1.2);
+
+  // ---- solid pillars ----
+  var pillars=[[-11.5,21],[11.5,21],[-13,11],[13,11]];
+  for(var pi=0;pi<pillars.length;pi++) box3(pillars[pi][0],pillars[pi][1],0.4,4.6);
+
+  // ---- floating dust ----
+  ctx.save();
+  for(var di=0;di<dust.length;di++){
+    var d=dust[di], yy=d[1]+Math.sin(now/1400+d[3])*0.3;
+    var cc=camPoint(d[0],yy,d[2]);
+    if(cc[2]>NEAR){
+      var sp2=project(cc), rr=Math.max(0.5,2/cc[2]*7);
+      ctx.globalAlpha=0.10+0.10*(0.5+0.5*Math.sin(now/900+d[3]));
+      ctx.fillStyle='#22e0c6';
+      ctx.beginPath(); ctx.arc(sp2[0],sp2[1],rr,0,6.283); ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // ---- targets (far → near) ----
+  var list=game.targets.slice();
+  if(game.state==='idle'||game.state==='done') list=idleTargets;
+  var withZ=[];
+  for(var i2=0;i2<list.length;i2++){
+    var t=list[i2], c=camPoint(t.pos[0],t.pos[1],t.pos[2]);
+    if(c[2]>NEAR) withZ.push([c[2],t,c]);
+  }
+  withZ.sort(function(a,b){ return b[0]-a[0]; });
+  for(var k=0;k<withZ.length;k++) drawTargetSphere(withZ[k][1],withZ[k][2],now);
+}
+function drawTargetSphere(t,c,now){
+  var p=project(c);
+  var scale=Math.min(1,(now-t.born)/130);
+  scale=1-(1-scale)*(1-scale); // ease-out
+  var r=(t.r/c[2])*focal*scale;
+  t._sx=p[0]; t._sy=p[1]; t._sr=r;
+  if(r<0.8) return;
+  // bloom glow
+  var gcol = t.on ? '34,224,198' : '255,70,85';
+  var glow=ctx.createRadialGradient(p[0],p[1],r*0.5,p[0],p[1],r*2.4);
+  glow.addColorStop(0,'rgba('+gcol+',0.38)');
+  glow.addColorStop(0.5,'rgba('+gcol+',0.12)');
+  glow.addColorStop(1,'rgba('+gcol+',0)');
+  ctx.fillStyle=glow;
+  ctx.beginPath(); ctx.arc(p[0],p[1],r*2.4,0,6.283); ctx.fill();
+  // ground shadow
+  var gsh=camPoint(t.pos[0],EYE_FLOOR+0.01,t.pos[2]);
+  if(gsh[2]>NEAR){
+    var sq=project(gsh);
+    ctx.save();
+    ctx.globalAlpha=0.28;
+    ctx.fillStyle='#000';
+    ctx.beginPath();
+    ctx.ellipse(sq[0],sq[1],r*1.05,Math.max(2,r*0.28),0,0,6.283);
+    ctx.fill();
+    ctx.restore();
+  }
+  // sphere
+  var grad=ctx.createRadialGradient(p[0]-r*0.35,p[1]-r*0.42,r*0.12,p[0],p[1],r);
+  if(t.on){ // tracking: on-target state
+    grad.addColorStop(0,'#b8fff2'); grad.addColorStop(0.45,'#22e0c6'); grad.addColorStop(1,'#0b6e60');
+  }else{
+    grad.addColorStop(0,'#ff98a1'); grad.addColorStop(0.45,'#ff4655'); grad.addColorStop(1,'#7e1b26');
+  }
+  ctx.fillStyle=grad;
+  ctx.beginPath(); ctx.arc(p[0],p[1],r,0,6.283); ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=1;
+  ctx.stroke();
+  // rim highlight
+  ctx.strokeStyle = t.on ? 'rgba(184,255,242,0.6)' : 'rgba(255,200,205,0.5)';
+  ctx.lineWidth=Math.max(1,r*0.09);
+  ctx.beginPath(); ctx.arc(p[0]-r*0.12,p[1]-r*0.12,r*0.86,3.4,5.6); ctx.stroke();
+  if(t.on){
+    ctx.strokeStyle='rgba(34,224,198,0.85)';
+    ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(p[0],p[1],r+4,0,6.283); ctx.stroke();
+  }
+}
+
+/* ---------- idle demo scene ---------- */
+var idleTargets=[
+  mkTarget([-4,0.6,12],0.55),
+  mkTarget([3.4,1.4,13],0.55),
+  mkTarget([0.6,-0.2,10.5],0.55)
+];
+idleTargets.forEach(function(t){ t.born=0; });
+
+/* ============================================================
+   10. HUD
+   ============================================================ */
+function hudText(txt,x,y,align,color,font){
+  ctx.font=font||'600 13px Consolas, ui-monospace, monospace';
+  ctx.textAlign=align||'left';
+  ctx.fillStyle='rgba(0,0,0,.6)';
+  ctx.fillText(txt,x+1,y+1);
+  ctx.fillStyle=color||'#e9eef3';
+  ctx.fillText(txt,x,y);
+}
+function drawHUD(now){
+  var st=game.stats;
+  var timeLeft=Math.max(0,(game.roundEndT-now)/1000);
+  // time bar
+  var frac=clamp(timeLeft/game.duration,0,1);
+  ctx.fillStyle='rgba(24,36,48,.8)';
+  ctx.fillRect(0,0,W,4);
+  ctx.fillStyle=timeLeft<5?'#ff4655':'#22e0c6';
+  ctx.fillRect(0,0,W*frac,4);
+
+  hudText('SÜRE '+timeLeft.toFixed(1),16,28,'left',timeLeft<5?'#ff4655':'#e9eef3','700 15px Consolas, ui-monospace, monospace');
+
+  var right='';
+  if(fam()==='track'){
+    var pct=st.totalMs>0?(st.onMs/st.totalMs*100):0;
+    right='HEDEFTE %'+pct.toFixed(1);
+    hudText(right,W-16,28,'right',pct>=60?'#39d98a':'#ffbd4a','700 15px Consolas, ui-monospace, monospace');
+  }else{
+    var acc=st.shots>0?Math.round(st.hits/st.shots*100):100;
+    right='İSABET '+st.hits+'  ·  DOĞRULUK %'+acc;
+    hudText(right,W-16,28,'right',acc>=85?'#39d98a':'#ffbd4a','700 15px Consolas, ui-monospace, monospace');
+  }
+  if(game.mode==='bench'){
+    hudText(game.roundLabel+'  ·  '+currentCm().toFixed(1)+' cm/360',W/2,28,'center','#ffbd4a','700 14px Consolas, ui-monospace, monospace');
+  }
+  if((fam()==='grid'||fam()==='tap')&&st.shots>0){
+    var elapsed=game.duration-timeLeft;
+    if(elapsed>3) hudText((st.hits*60/elapsed).toFixed(0)+' isabet/dk',16,50,'left','#8595a6');
+  }
+  if(fam()==='flick'&&game.mode!=='bench'&&st.flickTimes.length){
+    hudText('son flick '+Math.round(st.flickTimes[st.flickTimes.length-1])+'ms',16,50,'left','#8595a6');
+  }
+  // streak
+  if(game.streak>=3 && fam()!=='track'){
+    var pulse=1;
+    if(!RM){
+      var pe=(now-game.streakPulseT)/300;
+      if(pe<1) pulse=1+0.35*(1-pe);
+    }
+    ctx.save();
+    ctx.translate(W/2,H-46);
+    ctx.scale(pulse,pulse);
+    ctx.font='900 20px Consolas, ui-monospace, monospace';
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillText('SERİ ×'+game.streak,1,1);
+    ctx.fillStyle=game.streak>=10?'#ff4655':(game.streak>=5?'#ffbd4a':'#e9eef3');
+    ctx.fillText('SERİ ×'+game.streak,0,0);
+    ctx.restore();
+  }
+}
+function drawCountdown(now){
+  var left=(game.cdEnd-now)/1000;
+  var n=Math.ceil(left);
+  if(n!==game.lastCd && n>0){ game.lastCd=n; sTick(); }
+  ctx.save();
+  ctx.textAlign='center';
+  var s=1+(RM?0:(1-(left-Math.floor(left)))*0.15);
+  ctx.translate(W/2,H/2-60);
+  ctx.scale(s,s);
+  var disp=String(clamp(n,1,3));
+  ctx.font='900 74px Consolas, ui-monospace, monospace';
+  ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillText(disp,2,2);
+  ctx.fillStyle='#ff4655'; ctx.fillText(disp,0,0);
+  ctx.restore();
+  ctx.font='600 13px Consolas, ui-monospace, monospace';
+  ctx.textAlign='center';
+  ctx.fillStyle='#8595a6';
+  ctx.fillText(game.mode==='bench'?(game.roundLabel+' · '+currentCm().toFixed(1)+' cm/360'):'Hazırlan…',W/2,H/2-10);
+  if(game.mode==='bench') drawCrosshair();
+}
+
+/* ============================================================
+   11. MAIN LOOP
+   ============================================================ */
+var lastT=performance.now();
+function frame(now){
+  var dt=Math.min(0.05,(now-lastT)/1000);
+  lastT=now;
+  try{
+  if(game.state==='idle'||game.state==='done'){
+    idleYaw+=dt*0.05;
+    yaw=Math.sin(idleYaw)*0.22;
+    pitch=Math.sin(idleYaw*0.6)*0.05;
+  }else if(game.state==='countdown'){
+    if(now>=game.cdEnd) startRunning(now);
+  }else if(game.state==='running'){
+    var fU=fam();
+    if(fU==='track'){
+      var t=game.targets[0];
+      if(t){
+        moveTracker(t,dt);
+        var on=rayHit(t,1.12);
+        t.on=on;
+        game.stats.totalMs+=dt*1000;
+        if(on) game.stats.onMs+=dt*1000;
+      }
+    }else if(fU==='tap'){
+      for(var ti=game.targets.length-1;ti>=0;ti--){
+        var tt=game.targets[ti];
+        if(tt.life && (now-tt.born)>tt.life){
+          game.targets.splice(ti,1);
+          game.streak=0;
+          spawnTapTarget();
+        }
+      }
+    }
+    if(now>=game.roundEndT){ endRound(); }
+  }
+
+  // render
+  ctx.save();
+  if(!RM && (Math.abs(shake.x)>0.05||Math.abs(shake.y)>0.05)) ctx.translate(shake.x,shake.y);
+  drawWorld(now);
+  ctx.restore();
+
+  updateFx(dt);
+  drawFx(now);
+
+  if(game.state==='running'){
+    drawHUD(now);
+    drawCrosshair();
+    drawHitmarker(now);
+    if(now-game.goFlashT<600){
+      ctx.globalAlpha=1-(now-game.goFlashT)/600;
+      hudText('BAŞLA!',W/2,H/2-60,'center','#22e0c6','900 40px Consolas, ui-monospace, monospace');
+      ctx.globalAlpha=1;
+    }
+  }else if(game.state==='countdown'){
+    drawCountdown(now);
+  }else if(game.state==='paused'||game.state==='between'){
+    drawCrosshair();
+  }
+  }catch(e){ /* bir kare hata verse bile döngü sürsün — trainer donmasın */ }
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ============================================================
+   12. SENS BULUCU (BENCHMARK)
+   ============================================================ */
+var COARSE_MULT=[0.6,0.8,1.0,1.25,1.55];
+var FINE_MULT=[0.85,1.0,1.15];
+var CM_MIN=12, CM_MAX=110;
+var WARMUP_DUR=10, ROUND_DUR=15;
+
+function startBench(){
+  var base=round1(clamp(cm360(S.dpi,S.sens),CM_MIN,CM_MAX));
+  var rounds=[{cm:base,dur:WARMUP_DUR,warm:true,label:'ISINMA'}];
+  var seen={};
+  var ci=0;
+  COARSE_MULT.forEach(function(m){
+    var cm=round1(clamp(base*m,CM_MIN,CM_MAX));
+    if(seen[cm]) return;
+    seen[cm]=1; ci++;
+    rounds.push({cm:cm,dur:ROUND_DUR,warm:false,phase:'coarse',label:'KABA '+ci});
+  });
+  // fix labels with total
+  var coarseTotal=ci;
+  rounds.forEach(function(r,idx){ if(r.phase==='coarse'){ r.label=r.label+'/'+coarseTotal; } });
+  game.bench={
+    rounds:rounds, idx:0, results:[],
+    coarseTotal:coarseTotal, fineTotal:FINE_MULT.length, fineAdded:false,
+    baseCm:base
+  };
+  armLock();
+  beginRound(rounds[0]);
+}
+function benchRoundDone(res){
+  var B=game.bench;
+  if(!B){ abortToIdle(); return; }
+  var round=B.rounds[B.idx];
+  if(!round.warm){
+    B.results.push({
+      cm:round.cm, phase:round.phase,
+      hits:res.hits, shots:res.shots, acc:res.acc,
+      avgFlick:res.avgFlick, stdFlick:res.stdFlick,
+      score:round1(res.hits*res.acc)
+    });
+  }
+  B.idx++;
+  if(B.idx>=B.rounds.length && !B.fineAdded){
+    addFineRounds(B);
+  }
+  if(B.idx>=B.rounds.length){
+    finishBench(false);
+  }else{
+    showBetween(res,round);
+  }
+}
+function addFineRounds(B){
+  B.fineAdded=true;
+  var win=null;
+  B.results.forEach(function(r){ if(!win||r.score>win.score) win=r; });
+  if(!win){ return; }
+  var seen={}; // retesting the coarse winner is intentional — it measures consistency
+  var fi=0, added=[];
+  FINE_MULT.forEach(function(m){
+    var cm=round1(clamp(win.cm*m,CM_MIN,CM_MAX));
+    if(seen[cm]) return;
+    seen[cm]=1; fi++;
+    added.push({cm:cm,dur:ROUND_DUR,warm:false,phase:'fine',label:'İNCE '+fi});
+  });
+  B.fineTotal=added.length;
+  added.forEach(function(r){ r.label=r.label+'/'+B.fineTotal; B.rounds.push(r); });
+}
+function benchProgress(B){
+  var totalScored=B.coarseTotal+B.fineTotal;
+  return clamp(B.results.length/totalScored,0,1);
+}
+function showBetween(lastRes,lastRound){
+  var B=game.bench;
+  game.state='between';
+  unlockPointer();
+  var next=B.rounds[B.idx];
+  var prog=benchProgress(B);
+  $('betPhase').textContent = next.phase==='fine' ? '🔬 İnce Ayar Fazı' : (next.phase==='coarse' ? '🔬 Kaba Tarama Fazı' : '🔬 Sens Bulucu');
+  $('betBar').style.width=Math.round(prog*100)+'%';
+  if(lastRound.warm){
+    $('betLast').innerHTML='Isınma tamam — <b>'+lastRes.hits+' isabet</b>. Şimdi ölçüm başlıyor.';
+  }else{
+    $('betLast').innerHTML=
+      lastRound.cm.toFixed(1)+' cm → <b>'+lastRes.hits+' isabet</b> · %'+Math.round(lastRes.acc*100)+
+      ' doğruluk · skor <b>'+round1(lastRes.hits*lastRes.acc).toFixed(1)+'</b>';
+  }
+  $('betNext').textContent='Sıradaki tur: '+next.cm.toFixed(1)+' cm/360  ('+S.dpi+' DPI için sens '+fmt(sensFor(S.dpi,next.cm),3)+')';
+  showOv(ovBetween);
+}
+$('btnBetGo').addEventListener('click',function(){
+  var B=game.bench;
+  if(!B||game.state!=='between') return;
+  armLock();
+  beginRound(B.rounds[B.idx]);
+});
+$('btnBetQuit').addEventListener('click',function(){
+  var B=game.bench;
+  if(!B) { abortToIdle(); return; }
+  if(B.results.length>=2) finishBench(true);
+  else abortToIdle();
+});
+
+function aggregateBench(B){
+  var map={};
+  B.results.forEach(function(r){
+    if(!map[r.cm]) map[r.cm]={cm:r.cm,scores:[],hits:0,shots:0,flicks:[],stds:[],n:0};
+    var m=map[r.cm];
+    m.scores.push(r.score); m.hits+=r.hits; m.shots+=r.shots; m.n++;
+    if(r.avgFlick!==null&&r.avgFlick!==undefined) m.flicks.push(r.avgFlick);
+    if(r.stdFlick!==null&&r.stdFlick!==undefined) m.stds.push(r.stdFlick);
+  });
+  var rows=[];
+  Object.keys(map).forEach(function(k){
+    var m=map[k];
+    var avg=function(arr){ if(!arr.length) return null; var s2=0; arr.forEach(function(v){s2+=v;}); return s2/arr.length; };
+    rows.push({
+      cm:m.cm, n:m.n,
+      score:avg(m.scores),
+      hits:m.hits/m.n,
+      acc:m.shots>0?m.hits/m.shots:0,
+      avgFlick:avg(m.flicks),
+      stdFlick:avg(m.stds)
+    });
+  });
+  rows.sort(function(a,b){ return a.cm-b.cm; });
+  return rows;
+}
+function finishBench(partial){
+  var B=game.bench;
+  game.state='idle'; game.cmOverride=null; game.targets=[];
+  unlockPointer(); exitFS();
+  setTabsEnabled(true);
+  if(!B||!B.results.length){ selectMode(curMode); return; }
+  var rows=aggregateBench(B);
+  var win=rows[0];
+  rows.forEach(function(r){ if(r.score>win.score) win=r; });
+  // persist
+  DB.sessions++;
+  DB.recCm=win.cm;
+  DB.recSens=+fmt(sensFor(S.dpi,win.cm),3);
+  saveDB();
+  renderProgress();
+  game.bench=null;
+  // render report
+  $('recDpiLbl').textContent=S.dpi;
+  $('recSensMain').textContent=fmt(sensFor(S.dpi,win.cm),3);
+  $('recCmLbl').textContent='ideal mesafe: '+win.cm.toFixed(1)+' cm/360';
+  $('recSens800').textContent=fmt(sensFor(800,win.cm),3);
+  $('recSens400').textContent=fmt(sensFor(400,win.cm),3);
+  $('thDpi').textContent=' @'+S.dpi;
+  var tb=$('benchTable').querySelector('tbody');
+  var html='';
+  rows.forEach(function(r){
+    var isWin=r.cm===win.cm;
+    html+='<tr'+(isWin?' class="win"':'')+'>'+
+      '<td>'+r.cm.toFixed(1)+' cm'+(isWin?' ★':'')+(r.n>1?' <span style="color:var(--mut)">(×'+r.n+')</span>':'')+'</td>'+
+      '<td>'+fmt(sensFor(S.dpi,r.cm),3)+'</td>'+
+      '<td>'+r.hits.toFixed(1)+'</td>'+
+      '<td>%'+Math.round(r.acc*100)+'</td>'+
+      '<td>'+(r.avgFlick!==null?Math.round(r.avgFlick)+' ms':'—')+'</td>'+
+      '<td>'+(r.stdFlick!==null?'±'+Math.round(r.stdFlick)+' ms':'—')+'</td>'+
+      '<td>'+r.score.toFixed(1)+'</td>'+
+    '</tr>';
+  });
+  tb.innerHTML=html;
+  $('benchNote').textContent = partial
+    ? 'Not: Test erken bitirildi — öneri, tamamlanan '+B.results.length+' tur üzerinden hesaplandı. Tam sonuç için testi baştan çalıştır.'
+    : 'Öneriyi 2 hafta sabit kullan; kas hafızası oturmadan sens değiştirmek ölçümü geçersiz kılar. Skor = tur başına isabet × doğruluk.';
+  $('benchWrap').classList.add('show');
+  drawBenchChart(rows,win.cm);
+  selectMode('bench');
+  setTimeout(function(){
+    $('benchWrap').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});
+  },150);
+  pageToast('🔬 Analiz hazır — önerilen sens: '+fmt(sensFor(S.dpi,win.cm),3));
+}
+
+/* ---------- bench bar chart (validated palette: #0aa290 bars, #c4821c winner) ---------- */
+var benchRows=null, benchWinCm=null;
+function drawBenchChart(rows,winCm){
+  benchRows=rows; benchWinCm=winCm;
+  var c=$('benchChart');
+  var box=c.parentElement;
+  var w=Math.max(300,box.clientWidth-20), h=230;
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  c.width=Math.round(w*dpr); c.height=Math.round(h*dpr);
+  c.style.width=w+'px'; c.style.height=h+'px';
+  var g=c.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);
+  g.clearRect(0,0,w,h);
+
+  var padL=14,padR=14,padT=30,padB=34;
+  var iw=w-padL-padR, ih=h-padT-padB;
+  var maxS=0.001;
+  rows.forEach(function(r){ if(r.score>maxS) maxS=r.score; });
+  maxS*=1.12;
+  var n=rows.length;
+  var slot=iw/n;
+  var bw=Math.min(58,slot-10);
+
+  // recessive gridlines
+  g.strokeStyle='rgba(233,238,243,0.06)'; g.lineWidth=1;
+  for(var gi=1;gi<=3;gi++){
+    var gy=padT+ih-(ih*gi/3);
+    g.beginPath(); g.moveTo(padL,gy); g.lineTo(w-padR,gy); g.stroke();
+  }
+  // baseline
+  g.strokeStyle='rgba(233,238,243,0.16)';
+  g.beginPath(); g.moveTo(padL,padT+ih+0.5); g.lineTo(w-padR,padT+ih+0.5); g.stroke();
+
+  g.textAlign='center';
+  rows.forEach(function(r,i){
+    var x=padL+slot*i+(slot-bw)/2;
+    var bh=Math.max(3,ih*(r.score/maxS));
+    var y=padT+ih-bh;
+    var isWin=r.cm===winCm;
+    g.fillStyle=isWin?'#c4821c':'#0aa290';
+    // 4px rounded top, flat baseline
+    var rr=Math.min(4,bw/2,bh);
+    g.beginPath();
+    g.moveTo(x,y+bh);
+    g.lineTo(x,y+rr);
+    g.arcTo(x,y,x+rr,y,rr);
+    g.lineTo(x+bw-rr,y);
+    g.arcTo(x+bw,y,x+bw,y+rr,rr);
+    g.lineTo(x+bw,y+bh);
+    g.closePath();
+    g.fill();
+    // value label (text token, not series color)
+    g.font='700 12px Consolas, ui-monospace, monospace';
+    g.fillStyle='#e9eef3';
+    g.fillText(r.score.toFixed(1),x+bw/2,y-6);
+    if(isWin){
+      g.font='700 10px Consolas, ui-monospace, monospace';
+      g.fillStyle='#ffbd4a';
+      g.fillText('★ ÖNERİLEN',x+bw/2,y-20);
+    }
+    // x label
+    g.font='600 11px Consolas, ui-monospace, monospace';
+    g.fillStyle='#8595a6';
+    g.fillText(r.cm.toFixed(1)+'cm',x+bw/2,padT+ih+16);
+    g.fillStyle='rgba(133,149,166,0.7)';
+    g.fillText(fmt(sensFor(S.dpi,r.cm),3),x+bw/2,padT+ih+29);
+  });
+}
+window.addEventListener('resize',function(){
+  if(benchRows) drawBenchChart(benchRows,benchWinCm);
+  renderSpark();
+});
+document.addEventListener('fullscreenchange',function(){
+  // if user force-exits fullscreen between benchmark rounds, overlays keep working inline.
+  resize();
+  if(document.fullscreenElement && wantLock){ wantLock=false; lockPointer(); }
+});
+
+/* ============================================================
+   13. PROGRESS TILES + SPARKLINE
+   ============================================================ */
+var MODE_COLOR={flick:'#ff4655',wide:'#ff6b78',micro:'#ff98a1',grid:'#0aa290',tap:'#22e0c6',track:'#c4821c',strafe:'#e0a030'};
+var MODE_SHORT={flick:'Flick',wide:'Wide Flick',micro:'Microshot',grid:'Gridshot',tap:'Tap',track:'Tracking',strafe:'Strafe'};
+function renderProgress(){
+  $('tSessions').textContent=DB.sessions;
+  $('heroSessions').textContent=DB.sessions;
+  if(DB.best>0){
+    $('tBest').textContent=DB.best;
+    $('tBestMode').textContent=MODE_SHORT[DB.bestMode]||'';
+    $('heroBest').textContent=DB.best;
+  }else{ $('tBest').textContent='—'; $('tBestMode').textContent=''; $('heroBest').textContent='—'; }
+  if(DB.recSens!==null){
+    $('tRec').textContent=fmt(DB.recSens,3);
+    $('tRecCm').textContent=DB.recCm!==null?(DB.recCm.toFixed(1)+' cm/360 · '+S.dpi+' DPI'):'';
+  }else{ $('tRec').textContent='—'; $('tRecCm').textContent='Sens Bulucu’yu çalıştır'; }
+  var rec=DB.recent;
+  if(rec.length){
+    var last5=rec.slice(-5), s1=0;
+    last5.forEach(function(r){ s1+=r.s; });
+    var avg1=s1/last5.length;
+    $('tRating').textContent=Math.round(avg1);
+    var prev5=rec.slice(-10,-5);
+    if(prev5.length>=2){
+      var s0=0; prev5.forEach(function(r){ s0+=r.s; });
+      var avg0=s0/prev5.length;
+      var diff=avg1-avg0;
+      var el=$('tTrend');
+      if(Math.abs(diff)<avg0*0.02||avg0===0){ el.textContent='→ sabit'; el.className=''; }
+      else if(diff>0){ el.textContent='↑ +'+Math.round(diff); el.className='up'; }
+      else { el.textContent='↓ '+Math.round(diff); el.className='down'; }
+    }else{ $('tTrend').textContent='son 5 tur ort.'; }
+  }else{ $('tRating').textContent='—'; $('tTrend').textContent='henüz tur yok'; }
+  renderSpark();
+}
+function renderSpark(){
+  var c=$('spark');
+  var box=c.parentElement;
+  var w=Math.max(200,box.clientWidth-44), h=64;
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  c.width=Math.round(w*dpr); c.height=Math.round(h*dpr);
+  c.style.width=w+'px'; c.style.height=h+'px';
+  var g=c.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);
+  g.clearRect(0,0,w,h);
+  var rec=DB.recent;
+  if(rec.length<2){
+    $('sparkEmpty').textContent=rec.length?'1 tur kaydedildi — devam!':'İlk turunu oyna, grafik burada başlar.';
+    if(rec.length===1){
+      g.fillStyle=MODE_COLOR[rec[0].m]||'#8595a6';
+      g.beginPath(); g.arc(w/2,h/2,4,0,6.283); g.fill();
+    }
+    return;
+  }
+  $('sparkEmpty').textContent='';
+  var min=Infinity,max=-Infinity;
+  rec.forEach(function(r){ if(r.s<min)min=r.s; if(r.s>max)max=r.s; });
+  if(max===min){ max=min+1; }
+  var pad=8;
+  function X(i){ return pad + (w-2*pad)*(rec.length===1?0.5:i/(rec.length-1)); }
+  function Y(v){ return h-pad-(h-2*pad)*((v-min)/(max-min)); }
+  // connecting line — muted, identity carried by point color
+  g.strokeStyle='rgba(133,149,166,0.4)'; g.lineWidth=2; g.lineJoin='round';
+  g.beginPath();
+  rec.forEach(function(r,i){ var x=X(i),y=Y(r.s); if(i===0)g.moveTo(x,y); else g.lineTo(x,y); });
+  g.stroke();
+  // points colored by mode + surface ring
+  rec.forEach(function(r,i){
+    var x=X(i),y=Y(r.s);
+    g.fillStyle='#121a22';
+    g.beginPath(); g.arc(x,y,5.5,0,6.283); g.fill();
+    g.fillStyle=MODE_COLOR[r.m]||'#8595a6';
+    g.beginPath(); g.arc(x,y,4,0,6.283); g.fill();
+  });
+  // last value label
+  var lastR=rec[rec.length-1];
+  g.font='700 11px Consolas, ui-monospace, monospace';
+  g.textAlign='right';
+  g.fillStyle='#e9eef3';
+  var ly=Y(lastR.s);
+  g.fillText(String(lastR.s), w-2, ly<16?ly+16:ly-8);
+}
+
+/* ============================================================
+   14. REACTION TEST
+   ============================================================ */
+var reactBox=$('reactBox');
+var react={ state:'idle', timer:null, goT:0, times:[], count:0 };
+function reactSet(state,head,msg,time){
+  react.state=state;
+  reactBox.className=state==='armed'?'armed':(state==='go'?'go':'');
+  $('reactHead').textContent=head;
+  $('reactMsg').textContent=msg;
+  var tEl=$('reactTime');
+  if(time!==undefined){ tEl.style.display='block'; tEl.textContent=time; }
+  else tEl.style.display='none';
+}
+function reactStart(){
+  reactSet('armed','Bekle…','Yeşili görünce tıkla');
+  react.timer=setTimeout(function(){
+    react.goT=performance.now();
+    reactSet('go','TIKLA!','');
+    tone({f0:1400,dur:0.06,type:'square',g:0.07});
+  }, rand(1500,3500));
+}
+function reactClick(){
+  ac();
+  if(react.state==='idle'||react.state==='done'){
+    reactStart();
+  }else if(react.state==='armed'){
+    clearTimeout(react.timer);
+    reactSet('done','Erken! 😅','Yeşili beklemeden tıkladın — tekrar için tıkla');
+    sMiss();
+  }else if(react.state==='go'){
+    var ms=Math.round(performance.now()-react.goT);
+    react.times.push(ms); react.times=react.times.slice(-5);
+    react.count++;
+    var msg = ms<180?'Radyant refleks! 🔥' : ms<230?'Çok iyi — pro aralığı' : ms<300?'İyi — ortalamanın üstü' : 'Isınınca hızlanır, tekrar dene';
+    reactSet('done','Sonuç',''+msg+' · tekrar için tıkla',ms+' ms');
+    sHit(3);
+    if(DB.reactBest===null||ms<DB.reactBest){ DB.reactBest=ms; }
+    saveDB();
+    reactStatsRender();
+  }
+}
+function reactStatsRender(){
+  if(react.times.length){
+    var s=0; react.times.forEach(function(v){s+=v;});
+    $('reactAvg').textContent=Math.round(s/react.times.length)+' ms';
+  }
+  $('reactBest').textContent=DB.reactBest!==null?DB.reactBest+' ms':'—';
+  $('reactCount').textContent=react.count;
+}
+reactBox.addEventListener('mousedown',function(e){ if(e.button===0) reactClick(); });
+reactBox.addEventListener('keydown',function(e){
+  if(e.key===' '||e.key==='Enter'){ e.preventDefault(); reactClick(); }
+});
+reactStatsRender();
+
+/* ============================================================
+   15. CROSSHAIR COPY + INIT
+   ============================================================ */
+$('btnCopyXhair').addEventListener('click',function(){
+  var code=$('xhairCode').textContent;
+  function ok(){ pageToast('Crosshair kodu kopyalandı ✓'); }
+  function fail(){
+    try{
+      var r=document.createRange();
+      r.selectNodeContents($('xhairCode'));
+      var sel=window.getSelection();
+      sel.removeAllRanges(); sel.addRange(r);
+      pageToast('Kod seçildi — Ctrl+C ile kopyala');
+    }catch(e){ pageToast('Kopyalanamadı — kodu elle seç'); }
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(ok,fail);
+  }else fail();
+});
+
+refreshSetup();
+renderProgress();
+selectMode('flick');
+
+})();
+</script>
+</body>
+</html>
